@@ -1,245 +1,244 @@
-# ui/map_manager.py
+# map_manager.py
 import pygame
+import time
 import os
-from config import screen, WHITE, BLACK, BLUE, LIGHT_BLUE, GREEN, RED, GREEN_BUTTON, SCREEN_WIDTH, SCREEN_HEIGHT
+from tkinter import messagebox
+
+# Import từ config
+from config import (
+    SCREEN_WIDTH, SCREEN_HEIGHT, WHITE, BLACK, GRAY, BLUE, RED, GREEN_BUTTON,
+    font, small_font, screen
+)
 
 class MapManager:
     def __init__(self, game, db):
         self.game = game
         self.db = db
+        self.visible = False
         self.maps = []
         self.current_page = 0
         self.maps_per_page = 5
-        self.visible = False
-        self.title_font = pygame.font.SysFont("segoeui", 32, bold=True)
-        self.font = pygame.font.SysFont("segoeui", 24)
-        self.small_font = pygame.font.SysFont("segoeui", 18)
-        self.load_maps()
-    
+        self.selected_map_index = None
+        self.show_results = False
+        self.results = []
+
     def load_maps(self):
-        """Tải danh sách map từ cơ sở dữ liệu"""
+        """Tải danh sách các map từ cơ sở dữ liệu"""
         self.maps = self.db.load_maps()
-        print(f"Đã tải {len(self.maps)} map từ cơ sở dữ liệu")
-    
+        self.current_page = 0
+        self.selected_map_index = None
+        self.show_results = False
+
     def show(self):
         """Hiển thị giao diện quản lý map"""
         self.visible = True
-    
+        self.load_maps()
+
     def hide(self):
         """Ẩn giao diện quản lý map"""
         self.visible = False
-    
-    def is_visible(self):
-        """Kiểm tra xem giao diện có đang hiển thị không"""
-        return self.visible
-    
-    def next_page(self):
-        """Chuyển đến trang tiếp theo"""
-        max_pages = (len(self.maps) - 1) // self.maps_per_page + 1
-        if self.current_page < max_pages - 1:
-            self.current_page += 1
-    
-    def prev_page(self):
-        """Quay lại trang trước"""
-        if self.current_page > 0:
-            self.current_page -= 1
-    
+        self.show_results = False
+
     def load_map(self, map_index):
-        """Tải map được chọn"""
+        """Tải một map cụ thể từ danh sách"""
         if 0 <= map_index < len(self.maps):
-            map_data = self.maps[map_index]
-            map_id, map_name, size, board_state, image_path = map_data
-            
-            # Cập nhật kích thước puzzle
+            map_id, map_name, size, board_state, image_path = self.maps[map_index]
             self.game.size = size
-            
-            # Tạo puzzle mới
             self.game.puzzle = self.game.model_classes["Puzzle"](size)
-            
-            # Tạo puzzle đích
-            self.game.goal_puzzle = self.game.model_classes["Puzzle"](size)
-            self.game.goal_puzzle.initialize()
-            
-            # Cập nhật trạng thái từ cơ sở dữ liệu
             values = [int(x) for x in board_state.split(",")]
             for i in range(size):
                 for j in range(size):
                     value = values[i * size + j]
                     self.game.puzzle.set_value(i, j, value)
-            
-            # Cập nhật các biến khác
-            self.game.move_count = 0
-            self.game.start_time = self.game.time()
-            self.game.state = "playing"
-            self.game.solution = []
-            self.game.solution_index = 0
             self.game.selected_map_id = map_id
-            
-            # Tải hình ảnh nếu có
+            self.game.move_count = 0
+            # Sửa lỗi: Thay self.game.time() bằng time.time()
+            self.game.start_time = time.time()
+            self.game.state = "playing"
             if image_path and os.path.exists(image_path):
-                self.game.image_path = image_path
-                self.game.original_image = pygame.image.load(image_path)
-                self.game.original_image = self.game.original_image.convert_alpha()
-                self.game.use_image = True
-                self.game.split_image()
+                try:
+                    self.game.image_path = image_path
+                    self.game.original_image = pygame.image.load(image_path)
+                    self.game.original_image = self.game.original_image.convert_alpha()
+                    self.game.use_image = True
+                    self.game.split_image()
+                except Exception as e:
+                    print(f"Không thể tải hình ảnh: {e}")
+                    self.game.use_image = False
+                    self.game.original_image = None
+                    self.game.image_path = None
             else:
                 self.game.use_image = False
                 self.game.original_image = None
                 self.game.image_path = None
-            
-            print(f"Đã tải map: {map_name}")
             self.hide()
-            
-            # Phát nhạc game
-            if self.game.sound_enabled:
-                self.game.play_music("game")
-    
+            print(f"Đã tải map: {map_name}")
+
+    def delete_map(self, map_index):
+        """Xóa một map khỏi cơ sở dữ liệu"""
+        if 0 <= map_index < len(self.maps):
+            map_id = self.maps[map_index][0]
+            if self.db.delete_map(map_id):
+                print(f"Đã xóa map ID: {map_id}")
+                self.load_maps()
+            else:
+                print(f"Không thể xóa map ID: {map_id}")
+
+    def show_results_for_map(self, map_index):
+        """Hiển thị kết quả của một map cụ thể"""
+        if 0 <= map_index < len(self.maps):
+            map_id = self.maps[map_index][0]
+            self.results = self.db.load_results(map_id)
+            self.show_results = True
+            self.selected_map_index = map_index
+
+    def handle_events(self, event):
+        """Xử lý sự kiện trong giao diện quản lý map"""
+        if not self.visible:
+            return True
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = pygame.mouse.get_pos()
+            start_index = self.current_page * self.maps_per_page
+            end_index = min(start_index + self.maps_per_page, len(self.maps))
+
+            # Xử lý nút đóng
+            close_btn = pygame.Rect(SCREEN_WIDTH - 70, 110, 50, 50)
+            if close_btn.collidepoint(mouse_pos):
+                self.hide()
+                return True
+
+            # Xử lý các nút trong danh sách map
+            for i in range(start_index, end_index):
+                map_idx = i - start_index
+                map_y = 180 + map_idx * 100
+                select_btn = pygame.Rect(SCREEN_WIDTH//2 - 300, map_y + 50, 100, 40)
+                delete_btn = pygame.Rect(SCREEN_WIDTH//2 - 150, map_y + 50, 100, 40)
+                result_btn = pygame.Rect(SCREEN_WIDTH//2 - 0, map_y + 50, 100, 40)
+
+                if select_btn.collidepoint(mouse_pos):
+                    self.load_map(i)
+                    return True
+                elif delete_btn.collidepoint(mouse_pos):
+                    if messagebox.askyesno("Xác nhận", "Bạn có chắc chắn muốn xóa map này?"):
+                        self.delete_map(i)
+                    return True
+                elif result_btn.collidepoint(mouse_pos):
+                    self.show_results_for_map(i)
+                    return True
+
+            # Xử lý nút phân trang
+            prev_btn = pygame.Rect(SCREEN_WIDTH//2 - 150, 680, 100, 40)
+            next_btn = pygame.Rect(SCREEN_WIDTH//2 + 50, 680, 100, 40)
+            if prev_btn.collidepoint(mouse_pos) and self.current_page > 0:
+                self.current_page -= 1
+                return True
+            elif next_btn.collidepoint(mouse_pos) and (self.current_page + 1) * self.maps_per_page < len(self.maps):
+                self.current_page += 1
+                return True
+
+            # Xử lý nút đóng kết quả
+            if self.show_results:
+                close_results_btn = pygame.Rect(SCREEN_WIDTH - 70, 110, 50, 50)
+                if close_results_btn.collidepoint(mouse_pos):
+                    self.show_results = False
+                    return True
+
+        return True
+
     def draw(self):
         """Vẽ giao diện quản lý map"""
         if not self.visible:
             return
-        
-        # Vẽ hộp thoại đè lên màn hình chính
-        dialog_width = 700
-        dialog_height = 500
-        dialog_x = (SCREEN_WIDTH - dialog_width) // 2
-        dialog_y = (SCREEN_HEIGHT - dialog_height) // 2
-        
-        # Vẽ lớp phủ mờ
+
+        # Vẽ nền mờ
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 128))  # RGBA với alpha = 128 (mờ 50%)
+        overlay.fill((0, 0, 0, 128))
         screen.blit(overlay, (0, 0))
-        
-        # Vẽ hộp thoại
-        pygame.draw.rect(screen, WHITE, (dialog_x, dialog_y, dialog_width, dialog_height))
-        pygame.draw.rect(screen, BLACK, (dialog_x, dialog_y, dialog_width, dialog_height), 2)
-        
+
+        # Vẽ panel chính
+        panel_width = 700
+        panel_height = 600
+        panel_x = (SCREEN_WIDTH - panel_width) // 2
+        panel_y = (SCREEN_HEIGHT - panel_height) // 2
+        pygame.draw.rect(screen, WHITE, (panel_x, panel_y, panel_width, panel_height))
+        pygame.draw.rect(screen, BLACK, (panel_x, panel_y, panel_width, panel_height), 2)
+
+        # Vẽ nút đóng
+        close_btn = pygame.Rect(SCREEN_WIDTH - 70, 110, 50, 50)
+        pygame.draw.rect(screen, RED, close_btn)
+        close_text = font.render("X", True, WHITE)
+        screen.blit(close_text, (close_btn.x + 15, close_btn.y + 5))
+
         # Vẽ tiêu đề
-        title = self.title_font.render("QUẢN LÝ MAP", True, BLUE)
-        screen.blit(title, (dialog_x + dialog_width // 2 - title.get_width() // 2, dialog_y + 20))
-        
-        # Vẽ danh sách map
-        if not self.maps:
-            no_maps_text = self.font.render("Không có map nào. Hãy tạo map mới!", True, BLACK)
-            screen.blit(no_maps_text, (dialog_x + dialog_width // 2 - no_maps_text.get_width() // 2, dialog_y + 200))
-        else:
-            # Tính số trang
-            max_pages = (len(self.maps) - 1) // self.maps_per_page + 1
-            
-            # Vẽ thông tin trang
-            page_info = self.small_font.render(f"Trang {self.current_page + 1}/{max_pages}", True, BLACK)
-            screen.blit(page_info, (dialog_x + dialog_width // 2 - page_info.get_width() // 2, dialog_y + 60))
-            
-            # Vẽ nút Previous/Next
-            if self.current_page > 0:
-                prev_btn = pygame.Rect(dialog_x + 50, dialog_y + 55, 80, 30)
-                pygame.draw.rect(screen, LIGHT_BLUE, prev_btn, border_radius=5)
-                prev_text = self.small_font.render("< Trước", True, BLACK)
-                screen.blit(prev_text, (prev_btn.x + prev_btn.width // 2 - prev_text.get_width() // 2, prev_btn.y + 5))
-            
-            if self.current_page < max_pages - 1:
-                next_btn = pygame.Rect(dialog_x + dialog_width - 130, dialog_y + 55, 80, 30)
-                pygame.draw.rect(screen, LIGHT_BLUE, next_btn, border_radius=5)
-                next_text = self.small_font.render("Sau >", True, BLACK)
-                screen.blit(next_text, (next_btn.x + next_btn.width // 2 - next_text.get_width() // 2, next_btn.y + 5))
-            
-            # Vẽ từng map
+        title = font.render("QUẢN LÝ MAP", True, BLUE)
+        screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, 120))
+
+        if not self.show_results:
+            # Hiển thị danh sách map
             start_index = self.current_page * self.maps_per_page
             end_index = min(start_index + self.maps_per_page, len(self.maps))
-            
+
             for i in range(start_index, end_index):
-                map_index = i
-                map_id, map_name, size, board_state, image_path = self.maps[map_index]
-                
-                y_offset = 100 + (i - start_index) * 70
-                map_rect = pygame.Rect(dialog_x + 50, dialog_y + y_offset, dialog_width - 100, 60)
-                
-                # Vẽ nền cho mỗi map
-                pygame.draw.rect(screen, LIGHT_BLUE, map_rect, border_radius=5)
-                
+                map_idx = i - start_index
+                map_data = self.maps[i]
+                map_name = map_data[1]
+                size = map_data[2]
+                map_y = 180 + map_idx * 100
+
                 # Vẽ thông tin map
-                map_title = self.font.render(f"{map_name} ({size}x{size})", True, BLACK)
-                screen.blit(map_title, (map_rect.x + 10, map_rect.y + 5))
-                
-                # Hiển thị nếu có hình ảnh
-                has_image = "Có hình ảnh" if image_path and os.path.exists(image_path) else "Không có hình ảnh"
-                img_text = self.small_font.render(has_image, True, GREEN if image_path else RED)
-                screen.blit(img_text, (map_rect.x + 10, map_rect.y + 35))
-                
-                # Vẽ nút Load và Delete
-                load_btn = pygame.Rect(map_rect.x + map_rect.width - 170, map_rect.y + 15, 70, 30)
-                pygame.draw.rect(screen, GREEN_BUTTON, load_btn, border_radius=5)
-                load_text = self.small_font.render("Tải", True, BLACK)
-                screen.blit(load_text, (load_btn.x + load_btn.width // 2 - load_text.get_width() // 2, load_btn.y + 5))
-                
-                delete_btn = pygame.Rect(map_rect.x + map_rect.width - 90, map_rect.y + 15, 70, 30)
-                pygame.draw.rect(screen, RED, delete_btn, border_radius=5)
-                delete_text = self.small_font.render("Xóa", True, WHITE)
-                screen.blit(delete_text, (delete_btn.x + delete_btn.width // 2 - delete_text.get_width() // 2, delete_btn.y + 5))
-        
-        # Vẽ nút Đóng
-        close_btn = pygame.Rect(dialog_x + dialog_width // 2 - 50, dialog_y + dialog_height - 50, 100, 35)
-        pygame.draw.rect(screen, GREEN_BUTTON, close_btn, border_radius=5)
-        close_text = self.font.render("Đóng", True, BLACK)
-        screen.blit(close_text, (close_btn.x + close_btn.width // 2 - close_text.get_width() // 2, close_btn.y + 7))
-    
-    def handle_events(self, event):
-        """Xử lý sự kiện cho giao diện quản lý map"""
-        if not self.visible:
-            return False
-        
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_pos = pygame.mouse.get_pos()
-            
-            # Xử lý nút Đóng
-            dialog_width = 700
-            dialog_height = 500
-            dialog_x = (SCREEN_WIDTH - dialog_width) // 2
-            dialog_y = (SCREEN_HEIGHT - dialog_height) // 2
-            
-            close_btn = pygame.Rect(dialog_x + dialog_width // 2 - 50, dialog_y + dialog_height - 50, 100, 35)
-            if close_btn.collidepoint(mouse_pos):
-                self.hide()
-                return True
-            
-            # Xử lý nút Previous/Next
-            if self.current_page > 0:
-                prev_btn = pygame.Rect(dialog_x + 50, dialog_y + 55, 80, 30)
-                if prev_btn.collidepoint(mouse_pos):
-                    self.prev_page()
-                    return True
-            
-            # Tính số trang
-            max_pages = (len(self.maps) - 1) // self.maps_per_page + 1
-            if self.current_page < max_pages - 1:
-                next_btn = pygame.Rect(dialog_x + dialog_width - 130, dialog_y + 55, 80, 30)
-                if next_btn.collidepoint(mouse_pos):
-                    self.next_page()
-                    return True
-            
-            # Xử lý nút Load và Delete
-            if self.maps:
-                start_index = self.current_page * self.maps_per_page
-                end_index = min(start_index + self.maps_per_page, len(self.maps))
-                
-                for i in range(start_index, end_index):
-                    map_index = i
-                    
-                    y_offset = 100 + (i - start_index) * 70
-                    map_rect = pygame.Rect(dialog_x + 50, dialog_y + y_offset, dialog_width - 100, 60)
-                    
-                    # Xử lý nút Load
-                    load_btn = pygame.Rect(map_rect.x + map_rect.width - 170, map_rect.y + 15, 70, 30)
-                    if load_btn.collidepoint(mouse_pos):
-                        self.load_map(map_index)
-                        return True
-                    
-                    # Xử lý nút Delete
-                    delete_btn = pygame.Rect(map_rect.x + map_rect.width - 90, map_rect.y + 15, 70, 30)
-                    if delete_btn.collidepoint(mouse_pos):
-                        map_id = self.maps[map_index][0]
-                        if self.db.delete_map(map_id):
-                            self.load_maps()  # Tải lại danh sách map
-                        return True
-        
-        return True
+                map_info = small_font.render(f"Map: {map_name} - Kích thước: {size}x{size}", True, BLACK)
+                screen.blit(map_info, (SCREEN_WIDTH//2 - 300, map_y))
+
+                # Vẽ các nút
+                select_btn = pygame.Rect(SCREEN_WIDTH//2 - 300, map_y + 50, 100, 40)
+                delete_btn = pygame.Rect(SCREEN_WIDTH//2 - 150, map_y + 50, 100, 40)
+                result_btn = pygame.Rect(SCREEN_WIDTH//2 - 0, map_y + 50, 100, 40)
+
+                pygame.draw.rect(screen, GREEN_BUTTON, select_btn)
+                pygame.draw.rect(screen, RED, delete_btn)
+                pygame.draw.rect(screen, BLUE, result_btn)
+
+                select_text = small_font.render("Chọn", True, BLACK)
+                delete_text = small_font.render("Xóa", True, WHITE)
+                result_text = small_font.render("", True, WHITE)
+
+                screen.blit(select_text, (select_btn.x + 25, select_btn.y + 10))
+                screen.blit(delete_text, (delete_btn.x + 25, delete_btn.y + 10))
+                screen.blit(result_text, (result_btn.x + 15, result_btn.y + 10))
+
+            # Vẽ nút phân trang
+            if len(self.maps) > self.maps_per_page:
+                prev_btn = pygame.Rect(SCREEN_WIDTH//2 - 150, 680, 100, 40)
+                next_btn = pygame.Rect(SCREEN_WIDTH//2 + 50, 680, 100, 40)
+
+                pygame.draw.rect(screen, GRAY if self.current_page == 0 else GREEN_BUTTON, prev_btn)
+                pygame.draw.rect(screen, GRAY if (self.current_page + 1) * self.maps_per_page >= len(self.maps) else GREEN_BUTTON, next_btn)
+
+                prev_text = small_font.render("Trước", True, BLACK)
+                next_text = small_font.render("Sau", True, BLACK)
+
+                screen.blit(prev_text, (prev_btn.x + 15, prev_btn.y + 10))
+                screen.blit(next_text, (next_btn.x + 25, next_btn.y + 10))
+
+        else:
+            # Hiển thị kết quả của map được chọn
+            map_name = self.maps[self.selected_map_index][1]
+            result_title = font.render(f"Kết quả của {map_name}", True, BLUE)
+            screen.blit(result_title, (SCREEN_WIDTH//2 - result_title.get_width()//2, 120))
+
+            if not self.results:
+                no_result = small_font.render("Chưa có kết quả nào!", True, BLACK)
+                screen.blit(no_result, (SCREEN_WIDTH//2 - no_result.get_width()//2, 300))
+            else:
+                y_pos = 180
+                for idx, result in enumerate(self.results[:5]):
+                    moves = result[1]
+                    time_taken = result[2]
+                    result_text = small_font.render(f"Kết quả {idx + 1}: {moves} bước, {time_taken}s", True, BLACK)
+                    screen.blit(result_text, (SCREEN_WIDTH//2 - result_text.get_width()//2, y_pos))
+                    y_pos += 50
+
+    def is_visible(self):
+        """Kiểm tra xem giao diện quản lý map có đang hiển thị không"""
+        return self.visible

@@ -64,19 +64,23 @@ Nếu bạn muốn sử dụng script để tạo cơ sở dữ liệu, bạn c�
 -- Tạo cơ sở dữ liệu
 USE master;
 GO
+
 -- Kiểm tra và xóa cơ sở dữ liệu cũ nếu tồn tại
-IF EXISTS (SELECT name FROM sys.databases WHERE name = 'puzzle8')
+IF EXISTS (SELECT name FROM sys.databases WHERE name = 'puzzle_8')
 BEGIN
-    ALTER DATABASE puzzle8 SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE puzzle8;
+    ALTER DATABASE puzzle_8 SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE puzzle_8;
 END
 GO
+
 -- Tạo cơ sở dữ liệu mới
-CREATE DATABASE puzzle8;
+CREATE DATABASE puzzle_8;
 GO
+
 -- Sử dụng cơ sở dữ liệu
-USE puzzle8;
+USE puzzle_8;
 GO
+
 -- Tạo bảng lưu trữ thông tin map
 CREATE TABLE PuzzleMaps (
     MapID INT IDENTITY(1,1) PRIMARY KEY,
@@ -86,6 +90,8 @@ CREATE TABLE PuzzleMaps (
     ImagePath NVARCHAR(MAX) NULL, -- Đường dẫn đến hình ảnh (nếu có)
     CreateDate DATETIME DEFAULT GETDATE() -- Ngày tạo map
 );
+GO
+
 -- Tạo bảng lưu trữ kết quả giải
 CREATE TABLE PuzzleResults (
     ResultID INT IDENTITY(1,1) PRIMARY KEY,
@@ -95,9 +101,14 @@ CREATE TABLE PuzzleResults (
     SolveDate DATETIME DEFAULT GETDATE(), -- Ngày giải
     FOREIGN KEY (MapID) REFERENCES PuzzleMaps(MapID) ON DELETE CASCADE -- Khóa ngoại đến bảng Maps
 );
+GO
+
 -- Tạo index để tăng tốc truy vấn
 CREATE INDEX IX_PuzzleResults_MapID ON PuzzleResults(MapID);
+GO
 CREATE INDEX IX_PuzzleMaps_CreateDate ON PuzzleMaps(CreateDate);
+GO
+
 -- Tạo stored procedure để lấy danh sách map
 CREATE PROCEDURE GetAllMaps
 AS
@@ -107,6 +118,7 @@ BEGIN
     ORDER BY CreateDate DESC;
 END
 GO
+
 -- Tạo stored procedure để lấy kết quả của một map
 CREATE PROCEDURE GetMapResults
     @MapID INT
@@ -118,6 +130,7 @@ BEGIN
     ORDER BY ElapsedTime ASC;
 END
 GO
+
 -- Tạo stored procedure để lưu map mới
 CREATE PROCEDURE SaveMap
     @MapName NVARCHAR(100),
@@ -133,6 +146,7 @@ BEGIN
     RETURN @MapID;
 END
 GO
+
 -- Tạo stored procedure để lưu kết quả
 CREATE PROCEDURE SaveResult
     @MapID INT,
@@ -144,6 +158,7 @@ BEGIN
     VALUES (@MapID, @MoveCount, @ElapsedTime);
 END
 GO
+
 -- Tạo stored procedure để xóa map
 CREATE PROCEDURE DeleteMap
     @MapID INT
@@ -152,6 +167,7 @@ BEGIN
     DELETE FROM PuzzleMaps WHERE MapID = @MapID;
 END
 GO
+
 -- Tạo stored procedure để lấy 10 kết quả tốt nhất (ít bước nhất)
 CREATE PROCEDURE GetTop10Results
 AS
@@ -162,19 +178,27 @@ BEGIN
     ORDER BY pr.MoveCount ASC, pr.ElapsedTime ASC;
 END
 GO
+
 -- Tạo các map mẫu để test
 -- Map 3x3 đã giải (trạng thái đích)
 INSERT INTO PuzzleMaps (MapName, Size, BoardState)
 VALUES ('3x3 Đã giải', 3, '1,2,3,4,5,6,7,8,0');
+GO
+
 -- Map 3x3 đã trộn (ví dụ)
 INSERT INTO PuzzleMaps (MapName, Size, BoardState)
 VALUES ('3x3 Đơn giản', 3, '1,2,3,4,0,6,7,5,8');
+GO
+
 -- Map 4x4 đã giải
 INSERT INTO PuzzleMaps (MapName, Size, BoardState)
 VALUES ('4x4 Đã giải', 4, '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0');
+GO
+
 -- Map 5x5 đã giải
 INSERT INTO PuzzleMaps (MapName, Size, BoardState)
 VALUES ('5x5 Đã giải', 5, '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,0');
+GO
 
 ```
 
