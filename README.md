@@ -126,3 +126,7 @@ Race against an AI solver to see who can complete the puzzle first. You get a 3-
 
 - Special thanks to anyone who contributed to the project
 - Inspired by the classic sliding puzzle game
+
+## 📄 Hướng dẫn khác
+- [Hướng dẫn cài đặt Database](./DATABASE_SETUP.md)
+- [Hướng Dẫn cài đặt khác](./SETUP_GUIDE.md)

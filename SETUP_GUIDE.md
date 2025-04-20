@@ -10,26 +10,6 @@ This guide provides detailed instructions for setting up and running the "Huyễ
 - Graphics card with basic 2D capabilities
 - Sound card (optional, for audio features)
 
-## Database Setup
-
-The game uses Microsoft SQL Server for storing puzzle maps and results. Follow these steps to set up the database:
-
-1. **Install SQL Server**
-   - Download and install [SQL Server Express](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-   - During installation, enable "SQL Server Authentication Mode"
-   - Create a password for the 'sa' account
-
-2. **Install SQL Server Management Studio (SSMS)**
-   - Download and install [SSMS](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms)
-
-3. **Create the Database**
-   - Open SSMS and connect to your local SQL Server instance
-   - Right-click on "Databases" and select "New Database"
-   - Enter "puzzle8" as the database name and click OK
-
-4. **Install ODBC Driver**
-   - Download and install [ODBC Driver 17 for SQL Server](https://www.microsoft.com/en-us/download/details.aspx?id=56567)
-
 ## Python Environment Setup
 
 1. **Install Python**
@@ -61,7 +41,7 @@ The game uses Microsoft SQL Server for storing puzzle maps and results. Follow t
 
 The game requires several sound files. You can use your own audio files and rename them to match the expected filenames:
 
-1. Place the following sound files in the `Game2/sounds/` directory:
+1. Place the following sound files in the `Assets/sounds/` directory:
    - `welcome_music.mp3` - Music for the welcome screen
    - `game_music.mp3` - Background music during gameplay
    - `victory.wav` - Sound effect when completing a puzzle
