@@ -14,8 +14,8 @@ pygame.mixer.init()
 # Các hằng số
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 750
-TILE_SIZE = 80
-TILE_MARGIN = 5
+TILE_SIZE = 60
+TILE_MARGIN = 4
 ANIMATION_SPEED = 10
 
 # Màu sắc
@@ -28,6 +28,10 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 PALE_PINK = (255, 182, 193)
 GREEN_BUTTON = (124, 252, 0)
+LIGHT_BLUE = (135, 206, 250)  # Sky blue, tươi sáng hơn
+PALE_PINK = (255, 204, 204)   # Hồng nhạt dịu hơn
+GREEN_BUTTON = (50, 205, 50)  # Xanh lá cây nổi bật hơn
+AI_BOARD_BG = (255, 245, 238) # Màu nền nhẹ cho bảng AI
 
 # Đường dẫn
 ASSETS_DIR = "HuyenAnhMeTung/Assets"
@@ -115,6 +119,18 @@ class ButtonConfig:
     DUEL_PANEL_HEIGHT = 550
     DUEL_BUTTON_SPACING = 100
 
+    # Duel vs AI screen (mới)
+    DUEL_PLAYER_X = SCREEN_WIDTH // 3  # Trung tâm bảng người chơi
+    DUEL_AI_X = 2 * SCREEN_WIDTH // 3  # Trung tâm bảng AI
+    DUEL_BOARD_Y = 160  # Vị trí Y của cả hai bảng
+    DUEL_TARGET_X = SCREEN_WIDTH - 100  # Trung tâm bảng mục tiêu
+    DUEL_TARGET_Y = 120  # Vị trí Y của bảng mục tiêu
+    DUEL_STAT_WIDTH = 200  # Chiều rộng ô thống kê
+    DUEL_STAT_HEIGHT = 50  # Chiều cao ô thống kê
+    DUEL_STAT_Y = 650  # Vị trí Y của các ô thống kê
+    DUEL_PLAYER_STAT_X = 50  # Vị trí X của thống kê người chơi
+    DUEL_AI_STAT_X = SCREEN_WIDTH - 250  # Vị trí X của thống kê AI
+    DUEL_TIME_STAT_X = SCREEN_WIDTH // 2 - 100  # Vị trí X của thời gian
 # Cấu hình Database
 DB_CONFIG = {
     'DRIVER': '{ODBC Driver 17 for SQL Server}',

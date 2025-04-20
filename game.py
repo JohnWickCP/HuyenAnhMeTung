@@ -8,7 +8,9 @@ from tkinter import filedialog
 # Import từ config
 from config import (
     WHITE, BLACK, GRAY, LIGHT_BLUE, BLUE, RED, GREEN, PALE_PINK, GREEN_BUTTON,
-    SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, TILE_MARGIN,
+    SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, TILE_MARGIN, TILE_SIZE, TILE_MARGIN, GRAY, 
+    LIGHT_BLUE, BLACK, AI_BOARD_BG, font, small_font, 
+    PALE_PINK, BLUE, RED, SCREEN_WIDTH,
     sound_enabled, welcome_music, game_music, victory_sound, lose_sound,
     screen, font, small_font, ButtonConfig
 )
@@ -1072,46 +1074,128 @@ class Game:
         self.draw_result_board(right_panel_x, panel_y)
     
    
+    # def draw_duel_mode(self):
+    #     screen.fill(WHITE)
+    #     player_title = font.render("BẠN", True, BLUE)
+    #     ai_title = font.render("AI", True, RED)
+    #     screen.blit(player_title, (SCREEN_WIDTH//4 - player_title.get_width()//2, 80))
+    #     screen.blit(ai_title, (3*SCREEN_WIDTH//4 - ai_title.get_width()//2, 80))
+    #     player_board_x, player_board_y, tile_size = self.draw_player_puzzle()
+    #     self.draw_ai_puzzle(tile_size)
+    #     self.draw_goal_puzzle_duel(tile_size)  # Thêm bảng target
+    #     elapsed_time = int(time.time() - self.start_time) if self.start_time else 0
+    #     move_rect = pygame.Rect(50, 550, 150, 40)
+    #     ai_move_rect = pygame.Rect(SCREEN_WIDTH - 200, 550, 150, 40)
+    #     time_rect = pygame.Rect(SCREEN_WIDTH//2 - 75, 550, 150, 40)
+    #     pygame.draw.rect(screen, PALE_PINK, move_rect, border_radius=5)
+    #     pygame.draw.rect(screen, PALE_PINK, ai_move_rect, border_radius=5)
+    #     pygame.draw.rect(screen, PALE_PINK, time_rect, border_radius=5)
+    #     move_text = small_font.render(f"Bạn: {self.move_count}", True, BLACK)
+    #     ai_move_text = small_font.render(f"AI: {self.ai_move_count}", True, BLACK)
+    #     time_text = small_font.render(f"Thời gian: {elapsed_time}s", True, BLACK)
+    #     screen.blit(move_text, (move_rect.x + 10, move_rect.y + 10))
+    #     screen.blit(ai_move_text, (ai_move_rect.x + 10, ai_move_rect.y + 10))
+    #     screen.blit(time_text, (time_rect.x + 10, time_rect.y + 10))
+    #     if self.player_turn_count < 3:
+    #         turns_left = 3 - self.player_turn_count
+    #         turns_text = small_font.render(f"AI đang nhường bạn: {turns_left} bước", True, RED)
+    #         screen.blit(turns_text, (SCREEN_WIDTH//2 - turns_text.get_width()//2, 500))
+    #     return player_board_x, player_board_y, tile_size
+    
+
     def draw_duel_mode(self):
         screen.fill(WHITE)
+        
+        # Vẽ tiêu đề
         player_title = font.render("BẠN", True, BLUE)
         ai_title = font.render("AI", True, RED)
-        screen.blit(player_title, (SCREEN_WIDTH//4 - player_title.get_width()//2, 80))
-        screen.blit(ai_title, (3*SCREEN_WIDTH//4 - ai_title.get_width()//2, 80))
+        screen.blit(player_title, (ButtonConfig.DUEL_PLAYER_X - player_title.get_width() // 2, ButtonConfig.DUEL_BOARD_Y - 90))
+        screen.blit(ai_title, (ButtonConfig.DUEL_AI_X - ai_title.get_width() // 2, ButtonConfig.DUEL_BOARD_Y - 90))
+        
+        # Vẽ bảng puzzle
         player_board_x, player_board_y, tile_size = self.draw_player_puzzle()
         self.draw_ai_puzzle(tile_size)
-        self.draw_goal_puzzle_duel(tile_size)  # Thêm bảng target
+        self.draw_goal_puzzle_duel(tile_size)
+        
+        # Vẽ thống kê
         elapsed_time = int(time.time() - self.start_time) if self.start_time else 0
-        move_rect = pygame.Rect(50, 550, 150, 40)
-        ai_move_rect = pygame.Rect(SCREEN_WIDTH - 200, 550, 150, 40)
-        time_rect = pygame.Rect(SCREEN_WIDTH//2 - 75, 550, 150, 40)
-        pygame.draw.rect(screen, PALE_PINK, move_rect, border_radius=5)
-        pygame.draw.rect(screen, PALE_PINK, ai_move_rect, border_radius=5)
-        pygame.draw.rect(screen, PALE_PINK, time_rect, border_radius=5)
+        move_rect = pygame.Rect(ButtonConfig.DUEL_PLAYER_STAT_X, ButtonConfig.DUEL_STAT_Y, 
+                            ButtonConfig.DUEL_STAT_WIDTH, ButtonConfig.DUEL_STAT_HEIGHT)
+        ai_move_rect = pygame.Rect(ButtonConfig.DUEL_AI_STAT_X, ButtonConfig.DUEL_STAT_Y, 
+                                ButtonConfig.DUEL_STAT_WIDTH, ButtonConfig.DUEL_STAT_HEIGHT)
+        time_rect = pygame.Rect(ButtonConfig.DUEL_TIME_STAT_X, ButtonConfig.DUEL_STAT_Y, 
+                            ButtonConfig.DUEL_STAT_WIDTH, ButtonConfig.DUEL_STAT_HEIGHT)
+        
+        pygame.draw.rect(screen, PALE_PINK, move_rect, border_radius=10)
+        pygame.draw.rect(screen, PALE_PINK, ai_move_rect, border_radius=10)
+        pygame.draw.rect(screen, PALE_PINK, time_rect, border_radius=10)
+        
         move_text = small_font.render(f"Bạn: {self.move_count}", True, BLACK)
         ai_move_text = small_font.render(f"AI: {self.ai_move_count}", True, BLACK)
         time_text = small_font.render(f"Thời gian: {elapsed_time}s", True, BLACK)
-        screen.blit(move_text, (move_rect.x + 10, move_rect.y + 10))
-        screen.blit(ai_move_text, (ai_move_rect.x + 10, ai_move_rect.y + 10))
-        screen.blit(time_text, (time_rect.x + 10, time_rect.y + 10))
+        
+        screen.blit(move_text, (move_rect.x + (move_rect.width - move_text.get_width()) // 2, 
+                            move_rect.y + (move_rect.height - move_text.get_height()) // 2))
+        screen.blit(ai_move_text, (ai_move_rect.x + (ai_move_rect.width - ai_move_text.get_width()) // 2, 
+                                ai_move_rect.y + (ai_move_rect.height - ai_move_text.get_height()) // 2))
+        screen.blit(time_text, (time_rect.x + (time_rect.width - time_text.get_width()) // 2, 
+                            time_rect.y + (time_rect.height - time_text.get_height()) // 2))
+        
+        # Vẽ thông báo lượt đi
         if self.player_turn_count < 3:
             turns_left = 3 - self.player_turn_count
-            turns_text = small_font.render(f"AI đang nhường bạn: {turns_left} bước", True, RED)
-            screen.blit(turns_text, (SCREEN_WIDTH//2 - turns_text.get_width()//2, 500))
+            turns_text = font.render(f"AI đang nhường bạn: {turns_left} bước", True, RED)
+            screen.blit(turns_text, (SCREEN_WIDTH // 2 - turns_text.get_width() // 2, ButtonConfig.DUEL_STAT_Y - 50))
+        
         return player_board_x, player_board_y, tile_size
-    
+    # def draw_goal_puzzle_duel(self, main_tile_size):
+    #     if not self.goal_puzzle:
+    #         return
+    #     small_tile_size = main_tile_size // 2
+    #     small_margin = TILE_MARGIN // 2
+    #     board_width = self.goal_puzzle.size * (small_tile_size + small_margin)
+    #     board_height = self.goal_puzzle.size * (small_tile_size + small_margin)
+    #     board_x = SCREEN_WIDTH - board_width - 50
+    #     board_y = 50
+    #     pygame.draw.rect(screen, GRAY, (board_x - 5, board_y - 5, board_width + 10, board_height + 10))
+    #     goal_title = small_font.render("Target", True, RED)
+    #     screen.blit(goal_title, (board_x + board_width//2 - goal_title.get_width()//2, board_y - 25))
+    #     for row in range(self.goal_puzzle.size):
+    #         for col in range(self.goal_puzzle.size):
+    #             value = self.goal_puzzle.get_value(row, col)
+    #             x = board_x + col * (small_tile_size + small_margin)
+    #             y = board_y + row * (small_tile_size + small_margin)
+    #             if value != 0:
+    #                 if self.use_image and self.tile_images:
+    #                     for tile_value, tile_img in self.tile_images:
+    #                         if tile_value == value:
+    #                             small_img = pygame.transform.scale(tile_img, (small_tile_size, small_tile_size))
+    #                             screen.blit(small_img, (x, y))
+    #                             break
+    #                 else:
+    #                     pygame.draw.rect(screen, LIGHT_BLUE, (x, y, small_tile_size, small_tile_size))
+    #                 pygame.draw.rect(screen, BLACK, (x, y, small_tile_size, small_tile_size), 1)
+    #                 small_num_font = pygame.font.SysFont(None, max(12, small_tile_size // 2 + 5))
+    #                 text = small_num_font.render(str(value), True, BLACK)
+    #                 text_rect = text.get_rect(center=(x + small_tile_size // 2, y + small_tile_size // 2))
+    #                 screen.blit(text, text_rect)
+
     def draw_goal_puzzle_duel(self, main_tile_size):
         if not self.goal_puzzle:
             return
+        
         small_tile_size = main_tile_size // 2
         small_margin = TILE_MARGIN // 2
         board_width = self.goal_puzzle.size * (small_tile_size + small_margin)
         board_height = self.goal_puzzle.size * (small_tile_size + small_margin)
-        board_x = SCREEN_WIDTH - board_width - 50
-        board_y = 50
-        pygame.draw.rect(screen, GRAY, (board_x - 5, board_y - 5, board_width + 10, board_height + 10))
-        goal_title = small_font.render("Target", True, RED)
-        screen.blit(goal_title, (board_x + board_width//2 - goal_title.get_width()//2, board_y - 25))
+        
+        board_x = ButtonConfig.DUEL_TARGET_X - board_width // 2
+        board_y = ButtonConfig.DUEL_TARGET_Y
+        
+        pygame.draw.rect(screen, GRAY, (board_x - 10, board_y - 10, board_width + 20, board_height + 20), border_radius=5)
+        goal_title = font.render("", True, RED)
+        screen.blit(goal_title, (board_x + board_width // 2 - goal_title.get_width() // 2, board_y - 30))
+        
         for row in range(self.goal_puzzle.size):
             for col in range(self.goal_puzzle.size):
                 value = self.goal_puzzle.get_value(row, col)
@@ -1131,118 +1215,190 @@ class Game:
                     text = small_num_font.render(str(value), True, BLACK)
                     text_rect = text.get_rect(center=(x + small_tile_size // 2, y + small_tile_size // 2))
                     screen.blit(text, text_rect)
+                    
+    # def draw_player_puzzle(self):
+    #     """Vẽ bảng puzzle của người chơi"""
+    #     if not self.puzzle:
+    #         return 0, 0, 0
+        
+    #     # Tính toán kích thước tổng của bảng
+    #     tile_size_adjusted = TILE_SIZE - (self.size - 3) * 10  # Giảm kích thước ô khi kích thước puzzle tăng
+    #     tile_size_adjusted = max(tile_size_adjusted, 40)  # Đảm bảo ô không quá nhỏ
+        
+    #     board_width = self.puzzle.size * (tile_size_adjusted + TILE_MARGIN)
+    #     board_height = self.puzzle.size * (tile_size_adjusted + TILE_MARGIN)
+        
+    #     # Đặt vị trí bảng của người chơi ở phía bên trái
+    #     board_x = SCREEN_WIDTH//4 - board_width//2
+    #     board_y = 120
+        
+    #     # Vẽ nền cho bảng
+    #     pygame.draw.rect(screen, GRAY, (board_x - 10, board_y - 10, 
+    #                                     board_width + 20, board_height + 20))
+        
+    #     # Vẽ từng ô trong bảng
+    #     for row in range(self.puzzle.size):
+    #         for col in range(self.puzzle.size):
+    #             value = self.puzzle.get_value(row, col)
+                
+    #             # Tính toán vị trí của ô
+    #             x = board_x + col * (tile_size_adjusted + TILE_MARGIN)
+    #             y = board_y + row * (tile_size_adjusted + TILE_MARGIN)
+                
+    #             # Không vẽ ô trống (giá trị 0)
+    #             if value != 0:
+    #                 # Vẽ ô
+    #                 if self.use_image and self.tile_images:
+    #                     # Tìm hình ảnh tương ứng với giá trị
+    #                     for tile_value, tile_img in self.tile_images:
+    #                         if tile_value == value:
+    #                             # Điều chỉnh kích thước hình ảnh
+    #                             resized_img = pygame.transform.scale(tile_img, (tile_size_adjusted, tile_size_adjusted))
+    #                             screen.blit(resized_img, (x, y))
+    #                             break
+    #                 else:
+    #                     # Sử dụng màu và số cho ô
+    #                     pygame.draw.rect(screen, LIGHT_BLUE, (x, y, tile_size_adjusted, tile_size_adjusted))
+                    
+    #                 # Vẽ viền cho ô
+    #                 pygame.draw.rect(screen, BLACK, (x, y, tile_size_adjusted, tile_size_adjusted), 2)
+                    
+    #                 # Vẽ số trên ô nếu không sử dụng hình ảnh hoặc tùy chọn hiển thị số
+    #                 if not self.use_image or True:
+    #                     # Điều chỉnh cỡ chữ theo kích thước ô
+    #                     num_font_size = min(36, tile_size_adjusted // 2 + 10)
+    #                     num_font = pygame.font.SysFont(None, num_font_size)
+    #                     text = num_font.render(str(value), True, BLACK)
+    #                     text_rect = text.get_rect(center=(x + tile_size_adjusted // 2, y + tile_size_adjusted // 2))
+    #                     screen.blit(text, text_rect)
+        
+    #     # Trả về thông tin về vị trí và kích thước bảng để sử dụng trong các phương thức khác
+    #     return board_x, board_y, tile_size_adjusted
+
 
     def draw_player_puzzle(self):
-        """Vẽ bảng puzzle của người chơi"""
         if not self.puzzle:
             return 0, 0, 0
         
-        # Tính toán kích thước tổng của bảng
-        tile_size_adjusted = TILE_SIZE - (self.size - 3) * 10  # Giảm kích thước ô khi kích thước puzzle tăng
-        tile_size_adjusted = max(tile_size_adjusted, 40)  # Đảm bảo ô không quá nhỏ
+        tile_size_adjusted = min(TILE_SIZE, SCREEN_WIDTH // (self.size * 1.5))
+        tile_size_adjusted = max(tile_size_adjusted, 40)
         
         board_width = self.puzzle.size * (tile_size_adjusted + TILE_MARGIN)
         board_height = self.puzzle.size * (tile_size_adjusted + TILE_MARGIN)
         
-        # Đặt vị trí bảng của người chơi ở phía bên trái
-        board_x = SCREEN_WIDTH//4 - board_width//2
-        board_y = 120
+        board_x = ButtonConfig.DUEL_PLAYER_X - board_width // 2
+        board_y = ButtonConfig.DUEL_BOARD_Y
         
-        # Vẽ nền cho bảng
-        pygame.draw.rect(screen, GRAY, (board_x - 10, board_y - 10, 
-                                        board_width + 20, board_height + 20))
+        pygame.draw.rect(screen, GRAY, (board_x - 15, board_y - 15, board_width + 30, board_height + 30), border_radius=5)
         
-        # Vẽ từng ô trong bảng
         for row in range(self.puzzle.size):
             for col in range(self.puzzle.size):
                 value = self.puzzle.get_value(row, col)
-                
-                # Tính toán vị trí của ô
                 x = board_x + col * (tile_size_adjusted + TILE_MARGIN)
                 y = board_y + row * (tile_size_adjusted + TILE_MARGIN)
-                
-                # Không vẽ ô trống (giá trị 0)
                 if value != 0:
-                    # Vẽ ô
                     if self.use_image and self.tile_images:
-                        # Tìm hình ảnh tương ứng với giá trị
                         for tile_value, tile_img in self.tile_images:
                             if tile_value == value:
-                                # Điều chỉnh kích thước hình ảnh
                                 resized_img = pygame.transform.scale(tile_img, (tile_size_adjusted, tile_size_adjusted))
                                 screen.blit(resized_img, (x, y))
                                 break
                     else:
-                        # Sử dụng màu và số cho ô
                         pygame.draw.rect(screen, LIGHT_BLUE, (x, y, tile_size_adjusted, tile_size_adjusted))
-                    
-                    # Vẽ viền cho ô
                     pygame.draw.rect(screen, BLACK, (x, y, tile_size_adjusted, tile_size_adjusted), 2)
-                    
-                    # Vẽ số trên ô nếu không sử dụng hình ảnh hoặc tùy chọn hiển thị số
                     if not self.use_image or True:
-                        # Điều chỉnh cỡ chữ theo kích thước ô
                         num_font_size = min(36, tile_size_adjusted // 2 + 10)
                         num_font = pygame.font.SysFont(None, num_font_size)
                         text = num_font.render(str(value), True, BLACK)
                         text_rect = text.get_rect(center=(x + tile_size_adjusted // 2, y + tile_size_adjusted // 2))
                         screen.blit(text, text_rect)
         
-        # Trả về thông tin về vị trí và kích thước bảng để sử dụng trong các phương thức khác
         return board_x, board_y, tile_size_adjusted
+    # def draw_ai_puzzle(self, tile_size):
+    #     """Vẽ bảng puzzle của AI"""
+    #     if not self.ai_puzzle:
+    #         return
+        
+    #     board_width = self.ai_puzzle.size * (tile_size + TILE_MARGIN)
+    #     board_height = self.ai_puzzle.size * (tile_size + TILE_MARGIN)
+        
+    #     # Đặt vị trí bảng của AI ở phía bên phải
+    #     board_x = 3*SCREEN_WIDTH//4 - board_width//2
+    #     board_y = 120
+        
+    #     # Vẽ nền cho bảng
+    #     pygame.draw.rect(screen, GRAY, (board_x - 10, board_y - 10, 
+    #                                     board_width + 20, board_height + 20))
+        
+    #     # Vẽ từng ô trong bảng
+    #     for row in range(self.ai_puzzle.size):
+    #         for col in range(self.ai_puzzle.size):
+    #             value = self.ai_puzzle.get_value(row, col)
+                
+    #             # Tính toán vị trí của ô
+    #             x = board_x + col * (tile_size + TILE_MARGIN)
+    #             y = board_y + row * (tile_size + TILE_MARGIN)
+                
+    #             # Không vẽ ô trống (giá trị 0)
+    #             if value != 0:
+    #                 # Vẽ ô
+    #                 if self.use_image and self.tile_images:
+    #                     # Tìm hình ảnh tương ứng với giá trị
+    #                     for tile_value, tile_img in self.tile_images:
+    #                         if tile_value == value:
+    #                             # Điều chỉnh kích thước hình ảnh
+    #                             resized_img = pygame.transform.scale(tile_img, (tile_size, tile_size))
+    #                             screen.blit(resized_img, (x, y))
+    #                             break
+    #                 else:
+    #                     # Sử dụng màu và số cho ô với màu khác để phân biệt
+    #                     pygame.draw.rect(screen, (255, 200, 200), (x, y, tile_size, tile_size))
+                    
+    #                 # Vẽ viền cho ô
+    #                 pygame.draw.rect(screen, BLACK, (x, y, tile_size, tile_size), 2)
+                    
+    #                 # Vẽ số trên ô
+    #                 if not self.use_image or True:
+    #                     # Điều chỉnh cỡ chữ theo kích thước ô
+    #                     num_font_size = min(36, tile_size // 2 + 10)
+    #                     num_font = pygame.font.SysFont(None, num_font_size)
+    #                     text = num_font.render(str(value), True, BLACK)
+    #                     text_rect = text.get_rect(center=(x + tile_size // 2, y + tile_size // 2))
+    #                     screen.blit(text, text_rect)
 
     def draw_ai_puzzle(self, tile_size):
-        """Vẽ bảng puzzle của AI"""
         if not self.ai_puzzle:
             return
         
         board_width = self.ai_puzzle.size * (tile_size + TILE_MARGIN)
         board_height = self.ai_puzzle.size * (tile_size + TILE_MARGIN)
         
-        # Đặt vị trí bảng của AI ở phía bên phải
-        board_x = 3*SCREEN_WIDTH//4 - board_width//2
-        board_y = 120
+        board_x = ButtonConfig.DUEL_AI_X - board_width // 2
+        board_y = ButtonConfig.DUEL_BOARD_Y
         
-        # Vẽ nền cho bảng
-        pygame.draw.rect(screen, GRAY, (board_x - 10, board_y - 10, 
-                                        board_width + 20, board_height + 20))
+        pygame.draw.rect(screen, AI_BOARD_BG, (board_x - 15, board_y - 15, board_width + 30, board_height + 30), border_radius=5)
         
-        # Vẽ từng ô trong bảng
         for row in range(self.ai_puzzle.size):
             for col in range(self.ai_puzzle.size):
                 value = self.ai_puzzle.get_value(row, col)
-                
-                # Tính toán vị trí của ô
                 x = board_x + col * (tile_size + TILE_MARGIN)
                 y = board_y + row * (tile_size + TILE_MARGIN)
-                
-                # Không vẽ ô trống (giá trị 0)
                 if value != 0:
-                    # Vẽ ô
                     if self.use_image and self.tile_images:
-                        # Tìm hình ảnh tương ứng với giá trị
                         for tile_value, tile_img in self.tile_images:
                             if tile_value == value:
-                                # Điều chỉnh kích thước hình ảnh
                                 resized_img = pygame.transform.scale(tile_img, (tile_size, tile_size))
                                 screen.blit(resized_img, (x, y))
                                 break
                     else:
-                        # Sử dụng màu và số cho ô với màu khác để phân biệt
                         pygame.draw.rect(screen, (255, 200, 200), (x, y, tile_size, tile_size))
-                    
-                    # Vẽ viền cho ô
                     pygame.draw.rect(screen, BLACK, (x, y, tile_size, tile_size), 2)
-                    
-                    # Vẽ số trên ô
                     if not self.use_image or True:
-                        # Điều chỉnh cỡ chữ theo kích thước ô
                         num_font_size = min(36, tile_size // 2 + 10)
                         num_font = pygame.font.SysFont(None, num_font_size)
                         text = num_font.render(str(value), True, BLACK)
                         text_rect = text.get_rect(center=(x + tile_size // 2, y + tile_size // 2))
                         screen.blit(text, text_rect)
-
 
     def draw_result_board(self, panel_x, panel_y):
         """Vẽ bảng kết quả trong panel kết quả"""
