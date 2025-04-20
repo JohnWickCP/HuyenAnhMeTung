@@ -29,7 +29,7 @@
 
 1. Clone the repository or download the source code:
 ```
-git clone [https://github.com/JohnWickCP/HuyenAnhMeTung.git]
+git clone https://github.com/JohnWickCP/HuyenAnhMeTung.git
 cd huyen-anh-me-tung
 ```
 
