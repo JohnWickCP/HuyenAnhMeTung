@@ -29,7 +29,7 @@
 
 1. Clone the repository or download the source code:
 ```
-git clone https://github.com/yourusername/huyen-anh-me-tung.git
+git clone [https://github.com/JohnWickCP/HuyenAnhMeTung.git]
 cd huyen-anh-me-tung
 ```
 
@@ -120,9 +120,7 @@ Race against an AI solver to see who can complete the puzzle first. You get a 3-
 
 ## Credits
 
-- Developed by: [Your Name]
-- Sound effects: [Source attribution if applicable]
-- Icons/Images: [Source attribution if applicable]
+- Developed by: JohnWickCP
 
 ## Acknowledgments
 
